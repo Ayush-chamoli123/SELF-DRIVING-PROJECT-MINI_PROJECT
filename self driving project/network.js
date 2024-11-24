@@ -1,89 +1,110 @@
-class NeuralNetwork{
-   constructor(neuronCounts){
-       this.levels=[];
-       for(let i=0;i<neuronCounts.length-1;i++){
-           this.levels.push(new Level(
-               neuronCounts[i],neuronCounts[i+1]
-           ));
-       }
-   }
+class Visualizer{
+    static drawNetwork(ctx,network){
+        const margin=50;
+        const left=margin;
+        const top=margin;
+        const width=ctx.canvas.width-margin*2;
+        const height=ctx.canvas.height-margin*2;
 
-   static feedForward(givenInputs,network){
-       let outputs=Level.feedForward(
-           givenInputs,network.levels[0]);
-       for(let i=1;i<network.levels.length;i++){
-           outputs=Level.feedForward(
-               outputs,network.levels[i]);
-       }
-       return outputs;
-   }
+        const levelHeight=height/network.levels.length;
 
-   static mutate(network,amount=1){
-       network.levels.forEach(level => {
-           for(let i=0;i<level.biases.length;i++){
-               level.biases[i]=lerp(
-                   level.biases[i],
-                   Math.random()*2-1,
-                   amount
-               )
-           }
-           for(let i=0;i<level.weights.length;i++){
-               for(let j=0;j<level.weights[i].length;j++){
-                   level.weights[i][j]=lerp(
-                       level.weights[i][j],
-                       Math.random()*2-1,
-                       amount
-                   )
-               }
-           }
-       });
-   }
-}
+        for(let i=network.levels.length-1;i>=0;i--){
+            const levelTop=top+
+                lerp(
+                    height-levelHeight,
+                    0,
+                    network.levels.length==1
+                        ?0.5
+                        :i/(network.levels.length-1)
+                );
 
-class Level{
-   constructor(inputCount,outputCount){
-       this.inputs=new Array(inputCount);
-       this.outputs=new Array(outputCount);
-       this.biases=new Array(outputCount);
+            ctx.setLineDash([7,3]);
+            Visualizer.drawLevel(ctx,network.levels[i],
+                left,levelTop,
+                width,levelHeight,
+                i==network.levels.length-1
+                    ?['🠉','🠈','🠊','🠋']
+                    :[]
+            );
+        }
+    }
 
-       this.weights=[];
-       for(let i=0;i<inputCount;i++){
-           this.weights[i]=new Array(outputCount);
-       }
+    static drawLevel(ctx,level,left,top,width,height,outputLabels){
+        const right=left+width;
+        const bottom=top+height;
 
-       Level.#randomize(this);
-   }
+        const {inputs,outputs,weights,biases}=level;
 
-   static #randomize(level){
-       for(let i=0;i<level.inputs.length;i++){
-           for(let j=0;j<level.outputs.length;j++){
-               level.weights[i][j]=Math.random()*2-1;
-           }
-       }
+        for(let i=0;i<inputs.length;i++){
+            for(let j=0;j<outputs.length;j++){
+                ctx.beginPath();
+                ctx.moveTo(
+                    Visualizer.#getNodeX(inputs,i,left,right),
+                    bottom
+                );
+                ctx.lineTo(
+                    Visualizer.#getNodeX(outputs,j,left,right),
+                    top
+                );
+                ctx.lineWidth=2;
+                ctx.strokeStyle=getRGBA(weights[i][j]);
+                ctx.stroke();
+            }
+        }
 
-       for(let i=0;i<level.biases.length;i++){
-           level.biases[i]=Math.random()*2-1;
-       }
-   }
+        const nodeRadius=18;
+        for(let i=0;i<inputs.length;i++){
+            const x=Visualizer.#getNodeX(inputs,i,left,right);
+            ctx.beginPath();
+            ctx.arc(x,bottom,nodeRadius,0,Math.PI*2);
+            ctx.fillStyle="black";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x,bottom,nodeRadius*0.6,0,Math.PI*2);
+            ctx.fillStyle=getRGBA(inputs[i]);
+            ctx.fill();
+        }
+        
+        for(let i=0;i<outputs.length;i++){
+            const x=Visualizer.#getNodeX(outputs,i,left,right);
+            ctx.beginPath();
+            ctx.arc(x,top,nodeRadius,0,Math.PI*2);
+            ctx.fillStyle="black";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x,top,nodeRadius*0.6,0,Math.PI*2);
+            ctx.fillStyle=getRGBA(outputs[i]);
+            ctx.fill();
 
-   static feedForward(givenInputs,level){
-       for(let i=0;i<level.inputs.length;i++){
-           level.inputs[i]=givenInputs[i];
-       }
+            ctx.beginPath();
+            ctx.lineWidth=2;
+            ctx.arc(x,top,nodeRadius*0.8,0,Math.PI*2);
+            ctx.strokeStyle=getRGBA(biases[i]);
+            ctx.setLineDash([3,3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
 
-       for(let i=0;i<level.outputs.length;i++){
-           let sum=0
-           for(let j=0;j<level.inputs.length;j++){
-               sum+=level.inputs[j]*level.weights[j][i];
-           }
+            if(outputLabels[i]){
+                ctx.beginPath();
+                ctx.textAlign="center";
+                ctx.textBaseline="middle";
+                ctx.fillStyle="black";
+                ctx.strokeStyle="white";
+                ctx.font=(nodeRadius*1.5)+"px Arial";
+                ctx.fillText(outputLabels[i],x,top+nodeRadius*0.1);
+                ctx.lineWidth=0.5;
+                ctx.strokeText(outputLabels[i],x,top+nodeRadius*0.1);
+            }
+        }
+    }
 
-           if(sum>level.biases[i]){
-               level.outputs[i]=1;
-           }else{
-               level.outputs[i]=0;
-           } 
-       }
-
-       return level.outputs;
-   }
+    static #getNodeX(nodes,index,left,right){
+        return lerp(
+            left,
+            right,
+            nodes.length==1
+                ?0.5
+                :index/(nodes.length-1)
+        );
+    }
 }
