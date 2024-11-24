@@ -27,31 +27,42 @@ class Road{
            Math.min(laneIndex,this.laneCount-1)*laneWidth;
    }
 
-   draw(ctx){
-       ctx.lineWidth=5;
-       ctx.strokeStyle="white";
+ 
+   draw(ctx) {
+    
+    const gradient = ctx.createLinearGradient(this.left, 0, this.right, 0);
+    gradient.addColorStop(0, "#2c3e50"); 
+    gradient.addColorStop(0.5, "#34495e"); 
+    gradient.addColorStop(1, "#2c3e50");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(this.left, this.top, this.width, this.bottom - this.top);
 
-       for(let i=1;i<=this.laneCount-1;i++){
-           const x=lerp(
-               this.left,
-               this.right,
-               i/this.laneCount
-           );
-           
-           ctx.setLineDash([20,20]);
-           ctx.beginPath();
-           ctx.moveTo(x,this.top);
-           ctx.lineTo(x,this.bottom);
-           ctx.stroke();
-       }
 
-       ctx.setLineDash([]);
-       this.borders.forEach(border=>{
-           ctx.beginPath();
-           ctx.moveTo(border[0].x,border[0].y);
-           ctx.lineTo(border[1].x,border[1].y);
-           ctx.stroke();
-       });
-   }
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "white";
+    ctx.setLineDash([20, 20]); 
+
+    for (let i = 1; i <= this.laneCount - 1; i++) {
+        const x = lerp(this.left, this.right, i / this.laneCount);
+        ctx.beginPath();
+        ctx.moveTo(x, this.top);
+        ctx.lineTo(x, this.bottom);
+        ctx.stroke();
+    }
+    ctx.setLineDash([]); 
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "#e74c3c"; 
+    ctx.beginPath();
+    ctx.moveTo(this.left, this.top);
+    ctx.lineTo(this.left, this.bottom);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(this.right, this.top);
+    ctx.lineTo(this.right, this.bottom);
+    ctx.stroke();
+}
+
 }
  
