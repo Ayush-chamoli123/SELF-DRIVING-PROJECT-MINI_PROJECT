@@ -121,21 +121,64 @@ class Car{
        this.y-=Math.cos(this.angle)*this.speed;
    }
 
-   draw(ctx,color,drawSensor=false){
-       if(this.damaged){
-           ctx.fillStyle="gray";
-       }else{
-           ctx.fillStyle=color;
-       }
-       ctx.beginPath();
-       ctx.moveTo(this.polygon[0].x,this.polygon[0].y);
-       for(let i=1;i<this.polygon.length;i++){
-           ctx.lineTo(this.polygon[i].x,this.polygon[i].y);
-       }
-       ctx.fill();
+   draw(ctx, color = "blue", drawSensor = false) {
+    // Body of the car
+    ctx.fillStyle = this.damaged ? "gray" : color;
+    ctx.beginPath();
+    ctx.moveTo(this.polygon[0].x, this.polygon[0].y);
+    for (let i = 1; i < this.polygon.length; i++) {
+        ctx.lineTo(this.polygon[i].x, this.polygon[i].y);
+    }
+    ctx.closePath();
+    ctx.fill();
 
-       if(this.sensor && drawSensor){
-           this.sensor.draw(ctx);
-       }
-   }
+    // Add car details
+    if (!this.damaged) {
+        // Windows
+        ctx.fillStyle = "lightblue";
+        const windowOffset = this.width / 5;
+        ctx.fillRect(
+            this.x - this.width / 4,
+            this.y - this.height / 2 + windowOffset,
+            this.width / 2,
+            this.height / 4
+        );
+
+        // Headlights
+        ctx.fillStyle = "yellow";
+        const headlightSize = this.width / 6;
+        ctx.fillRect(
+            this.x - this.width / 2 + headlightSize / 2,
+            this.y - this.height / 2,
+            headlightSize,
+            headlightSize / 2
+        );
+        ctx.fillRect(
+            this.x + this.width / 2 - headlightSize * 1.5,
+            this.y - this.height / 2,
+            headlightSize,
+            headlightSize / 2
+        );
+
+        // Tail lights
+        ctx.fillStyle = "red";
+        ctx.fillRect(
+            this.x - this.width / 2 + headlightSize / 2,
+            this.y + this.height / 2 - headlightSize / 2,
+            headlightSize,
+            headlightSize / 2
+        );
+        ctx.fillRect(
+            this.x + this.width / 2 - headlightSize * 1.5,
+            this.y + this.height / 2 - headlightSize / 2,
+            headlightSize,
+            headlightSize / 2
+        );
+    }
+
+    // Sensors (optional)
+    if (this.sensor && drawSensor) {
+        this.sensor.draw(ctx);
+    }
+}
 }
